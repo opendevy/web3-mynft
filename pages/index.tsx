@@ -70,6 +70,7 @@ export default function Home() {
       const nfts = nftData.ownedNfts;
       if (nfts.length == 0) {
         setNfts([]);
+        setIsLoading(false);
       } else {
         const tempNFTs: nftData[] = [];
 
