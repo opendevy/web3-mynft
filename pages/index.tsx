@@ -146,6 +146,7 @@ export default function Home() {
     if (!accessToken) {
       const data = await signIn(account, signer);
       localStorage.setItem("tokenKey", data);
+      localStorage.setItem("isWeb3Connected", 'true');
       dispatch(setMetaMask(account));
       dispatch(setWeb3Connected(true));
       dispatch(setSigner(signer));
@@ -171,6 +172,7 @@ export default function Home() {
     web3Modal.clearCachedProvider();
     localStorage.removeItem("tokenKey");
     dispatch(setWeb3Connected(false));
+    localStorage.setItem("isWeb3Connected", 'false');
     dispatch(setMetaMask(""));
     setNfts([]);
   };
@@ -184,11 +186,32 @@ export default function Home() {
     } else {
       setButtonText("Connect Wallet");
     }
+
+    window.ethereum !== undefined &&
+    window.ethereum.on("accountsChanged", (acc: string) => {
+      // console.log('accountsChanged 1', acc);
+      // console.log('metaMaskAddress 1', metaMaskAddress);
+      if (metaMaskAddress !== "" && acc.length > 0 && metaMaskAddress.toLowerCase() !== acc[0].toLowerCase()) {
+        // console.log('accountsChanged 2', acc);
+        disconnectWallet();
+        connectWallet();
+      }
+    });
+  
+    return(() => {
+      window.ethereum.removeListener("accountsChanged", () => {
+        console.log('removeListener');      
+      });
+    });
   }, [isWeb3Connected, metaMaskAddress]);
 
   useEffect(() => {
-    console.log("nfts", nfts);
-  }, [nfts]);
+    const _isWeb3Connected = localStorage.getItem("isWeb3Connected");
+    if (_isWeb3Connected == 'true') {
+      connectWallet();
+    }
+    
+  }, []);
 
   return (
     <>
